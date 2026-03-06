@@ -30,7 +30,7 @@ Preencha as configurações conforme abaixo:
 |---|---|
 | Name | `nginx-static-server` |
 | AMI | Ubuntu Server 24.04 LTS (HVM), SSD Volume Type |
-| Instance type | `t2.micro` (free tier eligible) |
+| Instance type | `t3.micro` (free tier eligible) |
 | Key pair | **Proceed without a key pair** |
 | Storage | 8 GiB gp3 (padrão) |
 
@@ -82,7 +82,7 @@ Uma nova aba do navegador abrirá com um terminal totalmente funcional conectado
 Após conectar, atualize os pacotes do sistema antes de qualquer instalação:
 
 ```bash
-sudo apt update && sudo apt upgrade -y
+sudo apt update -y
 ```
 
 ---

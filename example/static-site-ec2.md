@@ -10,7 +10,7 @@ Este guia apresenta um passo a passo para provisionar uma instância EC2 na AWS,
 - Navegador web moderno (Chrome, Firefox ou Edge)
 - Conhecimento básico de terminal Linux
 
-> Neste tutorial o acesso ao terminal da instância será feito diretamente pelo **Console AWS via navegador**, utilizando o **EC2 Instance Connect** — sem necessidade de instalar cliente SSH ou gerenciar arquivos `.pem` localmente.
+> Neste tutorial, o acesso ao terminal da instância será feito diretamente pelo **Console AWS via navegador**, utilizando o **EC2 Instance Connect**, sem necessidade de instalar cliente SSH ou gerenciar arquivos `.pem` localmente.
 
 ---
 
@@ -38,56 +38,33 @@ Preencha as configurações conforme abaixo:
 
 ---
 
-## 2. Configurando o Security Group
+## 2. Conectando à Instância pelo Console AWS (EC2 Instance Connect)
 
-O Security Group funciona como um firewall virtual que controla o tráfego de entrada e saída da instância. Para este tutorial, precisamos liberar as portas SSH e HTTP.
-
-### 2.1 Definindo as Regras de Entrada (Inbound Rules)
-
-Na seção **Network settings** durante a criação da instância, clique em **Edit** e adicione as seguintes regras:
-
-| Type | Protocol | Port Range | Source | Descrição |
-|---|---|---|---|---|
-| HTTP | TCP | 80 | Anywhere (0.0.0.0/0) | Tráfego web público |
-
-> O acesso administrativo será feito via **EC2 Instance Connect** diretamente pelo Console AWS, que injeta uma chave SSH temporária na instância por um canal interno da AWS — sem necessidade de liberar a porta 22 no Security Group.
-
-### 2.2 Verificando o Security Group após criação
-
-Após a instância ser criada, você pode revisar e editar o Security Group em:
-
-**EC2 Dashboard > Security Groups > Selecione o grupo > Inbound rules > Edit inbound rules**
-
----
-
-## 3. Conectando à Instância pelo Console AWS (EC2 Instance Connect)
-
-O **EC2 Instance Connect** permite abrir um terminal diretamente no navegador, sem cliente SSH local nem gerenciamento de chaves. A AWS injeta uma chave temporária na instância via canal interno a cada sessão.
+O **EC2 Instance Connect** permite abrir um terminal diretamente no navegador, sem cliente SSH local nem gerenciamento de chaves. A AWS injeta uma chave temporária na instância, via canal interno, a cada sessão.
 
 1. No **EC2 Dashboard**, acesse **Instances** e selecione a instância `nginx-static-server`.
 2. Aguarde o estado mudar para **Running** e o **Status check** indicar **2/2 checks passed**.
 3. Clique em **Connect** (botão no topo do painel).
 4. Selecione a aba **EC2 Instance Connect**.
-5. O campo **Username** deve estar preenchido como `ubuntu`.
+5. O campo **Username** deve estar preenchido com `ubuntu`.
 6. Clique em **Connect**.
 
-Uma nova aba do navegador abrirá com um terminal totalmente funcional conectado à instância.
+Uma nova aba do navegador será aberta com um terminal totalmente funcional conectado à instância.
 
 > **Requisito:** A AMI deve ter o pacote `ec2-instance-connect` instalado. O Ubuntu Server 24.04 LTS da AWS já vem com ele pré-instalado.
 
 ---
 
-## 4. Preparando o Ambiente no Ubuntu
+## 3. Preparando o ambiente no Ubuntu
 
 Após conectar, atualize os pacotes do sistema antes de qualquer instalação:
 
 ```bash
 sudo apt update -y
 ```
-
 ---
 
-## 5. Instalando o Nginx
+## 4. Instalando o Nginx
 
 ```bash
 sudo apt install nginx -y
@@ -106,9 +83,47 @@ sudo systemctl start nginx
 sudo systemctl enable nginx  # habilita inicialização automática com o sistema
 ```
 
+## 5. Acessando o site padrão do Nginx
+
+Ao ser instalado, o Nginx exibe uma página padrão, indicando que a instalação foi bem-sucedida. 
+Para acessar essa página, copie o IP público ou DNS público da instância e digite no navegador, adicionando o protocolo http://
+
+```
+http://IP-PÚBLICO
+```
+ou 
+```
+http://DNS-PÚBLICO
+```
+
+Você consegue visualizar o site?
+
 ---
 
-## 6. Entendendo a Estrutura do Nginx
+## 6. Configurando o Security Group
+
+O Security Group funciona como um firewall virtual que controla o tráfego de entrada e saída da instância. Para este tutorial, precisamos liberar as portas SSH e HTTP.
+
+### 6.1 Definindo as Regras de Entrada (Inbound Rules)
+
+Na seção **Network settings** durante a criação da instância, clique em **Edit** e adicione as seguintes regras:
+
+| Type | Protocol | Port Range | Source | Descrição |
+|---|---|---|---|---|
+| HTTP | TCP | 80 | Anywhere (0.0.0.0/0) | Tráfego web público |
+
+> O acesso administrativo será feito via **EC2 Instance Connect** diretamente pelo Console AWS, que injeta uma chave SSH temporária na instância por um canal interno da AWS — sem necessidade de liberar a porta 22 no Security Group.
+
+### 6.2 Verificando o Security Group após criação
+
+Após a instância ser criada, você pode revisar e editar o Security Group em:
+
+**EC2 Dashboard > Security Groups > Selecione o grupo > Inbound rules > Edit inbound rules**
+
+
+---
+
+## 7. Entendendo a Estrutura do Nginx
 
 O Nginx opera com um **processo master** responsável por ler e avaliar a configuração, e múltiplos **worker processes** que lidam com as requisições. O arquivo de configuração principal no Ubuntu fica em:
 
@@ -134,15 +149,15 @@ No Ubuntu, os sites disponíveis ficam em `/etc/nginx/sites-available/` e os ati
 
 ---
 
-## 7. Criando e Implantando a Página Estática
+## 8. Criando e Implantando a Página Estática
 
-### 7.1 Criar o diretório raiz do site
+### 8.1 Criar o diretório raiz do site
 
 ```bash
 sudo mkdir -p /var/www/meusite/html
 ```
 
-### 7.2 Criar a página HTML
+### 8.2 Criar a página HTML
 
 ```bash
 sudo nano /var/www/meusite/html/index.html
@@ -189,7 +204,7 @@ Cole o conteúdo abaixo:
 
 Salve com `Ctrl+O`, `Enter`, `Ctrl+X`.
 
-### 7.3 Ajustar permissões
+### 8.3 Ajustar permissões
 
 ```bash
 sudo chown -R www-data:www-data /var/www/meusite
@@ -198,9 +213,9 @@ sudo chmod -R 755 /var/www/meusite
 
 ---
 
-## 8. Configurando o Virtual Host no Nginx
+## 9. Configurando o Virtual Host no Nginx
 
-### 8.1 Criar o arquivo de configuração do site
+### 9.1 Criar o arquivo de configuração do site
 
 ```bash
 sudo nano /etc/nginx/sites-available/meusite
@@ -228,7 +243,7 @@ server {
 
 > O `server_name _;` é uma convenção para capturar requisições sem um hostname específico, adequado para acesso direto via IP.
 
-### 8.2 Habilitar o site
+### 9.2 Habilitar o site
 
 Crie um symlink em `sites-enabled`:
 
@@ -242,7 +257,7 @@ Desabilite o site padrão para evitar conflitos:
 sudo rm /etc/nginx/sites-enabled/default
 ```
 
-### 8.3 Validar a configuração
+### 9.3 Validar a configuração
 
 Antes de recarregar o serviço, teste a sintaxe do arquivo de configuração:
 
@@ -257,7 +272,7 @@ nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
 nginx: configuration file /etc/nginx/nginx.conf test is successful
 ```
 
-### 8.4 Recarregar o Nginx
+### 9.4 Recarregar o Nginx
 
 ```bash
 sudo nginx -s reload
@@ -269,7 +284,7 @@ O processo master do Nginx valida a nova configuração antes de aplicá-la. Se 
 
 ---
 
-## 9. Testando o Deploy
+## 10. Testando o Deploy
 
 Abra o navegador e acesse:
 
@@ -287,7 +302,7 @@ curl http://<PUBLIC_IP>
 
 ---
 
-## 10. Diagnóstico e Logs
+## 11. Diagnóstico e Logs
 
 Caso o site não esteja acessível, verifique os logs:
 
@@ -312,7 +327,7 @@ Checklist de diagnóstico:
 
 ---
 
-## 11. Controle do Processo Nginx
+## 12. Controle do Processo Nginx
 
 O Nginx aceita sinais de controle via o executável ou `systemctl`:
 
@@ -334,7 +349,6 @@ sudo nginx -s reopen
 
 ## Resumo da Arquitetura
 
-
 ```mermaid
 flowchart TB
     A["Internet"] -->|"HTTP :80"| B["AWS Security Group\nInbound: TCP 80 (0.0.0.0/0)"]
@@ -343,6 +357,16 @@ flowchart TB
     D --> E["Worker Process"]
     E --> F["/var/www/meusite/html/index.html"]
 ```
+
+--- 
+
+## FAQ
+
+### Não consigo acessar o meu site implantado na AWS. 
+1. Confirme que o site está funcionando localmente com o comando `curl 127.0.0.1`.
+2. Confirme que o _security groups_ da instância utilizada está com a liberação da porta utilizada (porta 80 -> 0.0.0.0/0)
+3. Confirme que está usando o ip público ou DNS público para acessar a máquina.
+4. Os navegadores modificam automaticamente a requisição para https. Visualize na barra de endereço se a requisição está `http://...`
 
 ## Referências
 
